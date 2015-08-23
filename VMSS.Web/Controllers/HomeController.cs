@@ -27,91 +27,28 @@ namespace VMSS.Web.Controllers
         private static int count = 0;
         public ActionResult Index()
         {
-           // try
-            ///**/{
            
-           // InitBass();
-                dir = @"d:\music";
-
-            string[] musicFiles = Directory.GetFiles(@"d:\music", "*.mp3");
-            foreach (string musicFile in musicFiles)
-            {
-                using (var mp3 = new Mp3File(musicFile))
-                {
-                    Id3Tag tag = mp3.GetTag(Id3TagFamily.FileStartTag);
-                    Console.WriteLine("Title: {0}", tag.Title.Value);
-                    Console.WriteLine("Artist: {0}", tag.Artists.Value);
-                    Console.WriteLine("Album: {0}", tag.Album.Value);
-                }
-            }
-            /* if (Bass.BASS_Init(0, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
-                 throw new Exception("Error initializing audio mixer");*/
-
-            /* int mixer = BassMix.BASS_Mixer_StreamCreate(44100, 2, BASSFlag.BASS_MIXER_END | BASSFlag.BASS_STREAM_DECODE);
-
-             int backgroundStream = Bass.BASS_StreamCreateFile(backgroundFile, 0L, 0L, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
-             int vocalStream = Bass.BASS_StreamCreateFile(vocalFile, 0L, 0L, BASSFlag.BASS_SAMPLE_FLOAT | BASSFlag.BASS_STREAM_DECODE | BASSFlag.BASS_STREAM_PRESCAN);
-
-             bool backgroundOk = BassMix.BASS_Mixer_StreamAddChannel(mixer, backgroundStream, BASSFlag.BASS_STREAM_AUTOFREE | BASSFlag.BASS_MIXER_DOWNMIX);
-             bool vocalOk = BassMix.BASS_Mixer_StreamAddChannel(mixer, vocalStream, BASSFlag.BASS_STREAM_AUTOFREE | BASSFlag.BASS_MIXER_DOWNMIX);
-
-             if (!vocalOk)
-                 throw new Exception("Error reading vocal stream");
-             else if (!backgroundOk)
-                 throw new Exception("Error reading background stream");
-
-             //audio volume adjustment
-             Bass.BASS_ChannelSetAttribute(vocalStream, BASSAttribute.BASS_ATTRIB_VOL, (float)1.0);
-             Bass.BASS_ChannelSetAttribute(backgroundStream, BASSAttribute.BASS_ATTRIB_VOL, (float)0.3);
-
-             string cmdLine = HostingEnvironment.MapPath("\\bin\\lame.exe") + " --alt-preset standard - " + outFile;
-             int encoder = BassEnc.BASS_Encode_Start(mixer, cmdLine, 0, null, IntPtr.Zero);
-
-             while (Bass.BASS_ChannelIsActive(mixer) == BassEnc.BASS_Encode_IsActive(encoder))
-             {
-                 Byte[] buf = new Byte[50000];
-                 Bass.BASS_ChannelGetData(mixer, buf, buf.Length);
-             }
-
-             BassEnc.BASS_Encode_Stop(mixer);
-             Bass.BASS_StreamFree(mixer);
-         }
-         catch (Exception ex)
-         {
-             throw ex;
-         }
-         finally
-         {
-             //release resources
-             Bass.BASS_Free();
-             Bass.FreeMe();
-
-             BassEnc.FreeMe();
-             BassMix.FreeMe();
-         }*/
-
+            
             return View();
         }
 
-        private string InitBass()
+        [HttpPost]
+        public ActionResult Index(IEnumerable<HttpPostedFileBase> files)
         {
-            string _ret = "";
 
-            BassNet.Registration("jthadison@gmail.com", "2X19181419152222");
-
+            foreach (var file in files)
+            {
+                if (file.ContentLength > 0)
+                {
+                    var fileName = Path.GetFileName(file.FileName);
+                    var path = Path.Combine(Server.MapPath("~/App_Data/uploads"), fileName);
+                    file.SaveAs(path);
+                }
+            }
 
             
-            if (!Bass.BASS_Init(0, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
-            {
-                // Bass_Init Error!            
-                _ret = Bass.BASS_ErrorGetCode().ToString();
-            }
-            else
-            {
-                _ret = "BASS_OK";
-            }
 
-            return _ret;
+            return View();
         }
 
         static int DirSearch(string dir)
