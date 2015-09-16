@@ -6,11 +6,15 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Id3;
+using NLog;
+using NLog.Fluent;
 
 namespace VMSS.Web.Controllers
 {
-    public class UploadMp3sController : Controller
+   public class UploadMp3sController : Controller
     {
+        Logger logger = LogManager.GetCurrentClassLogger();
+
         // GET: UploadMp3s
         public ActionResult Index()
         {
@@ -23,23 +27,35 @@ namespace VMSS.Web.Controllers
         public ActionResult Index(IEnumerable<HttpPostedFileBase> files)
         {
             var genre = string.Empty;
+            var webroot = Server.MapPath("~");
+            var musicFolder = @"E:\HostingSpaces\vbreeden\vibestreams.com\Music\";
+            
+
             foreach (var file in files)
             {
                 if (file.ContentLength > 0)
                 {
+                    
                     var fileName = Path.GetFileName(file.FileName);
-                    var webroot = Server.MapPath("~");
-
                     genre = GetGenre(file);
+                    logger.Info(musicFolder + genre);
+                    bool exists = System.IO.Directory.Exists(musicFolder+genre);
 
-                    var path = Path.Combine(webroot, @"..\Music\" + genre + @"\" + fileName);
+                    if (!exists)
+                        System.IO.Directory.CreateDirectory(musicFolder);
+
+                    var saveDir = musicFolder;
+
+                    var path = Path.Combine(webroot, saveDir + fileName);
                     file.SaveAs(path);
                 }
             }
 
             Process process = new Process();
-            var processPath =
-                @"d:\Users\junior\Documents\Visual Studio 2013\Projects\LoadMp3s\ConsoleApplication1\bin\Debug\";
+            /*var processPath =
+                @"d:\Users\junior\Documents\Visual Studio 2013\Projects\LoadMp3s\ConsoleApplication1\bin\Debug\";*/
+            var processPath = @"E:\HostingSpaces\vbreeden\vibestreams.com\BassAudioConsoleApp\";
+            logger.Info("Console App Path: " + processPath);
             process.StartInfo.FileName = processPath + "ConsoleApplication1.exe";
             process.Start();
             return View();
